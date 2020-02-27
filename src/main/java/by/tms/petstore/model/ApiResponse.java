@@ -12,4 +12,8 @@ public class ApiResponse {
     private String type;
     private String message;
 
+    public ApiResponse(String message){
+        this.message = message;
+    }
+
 }
