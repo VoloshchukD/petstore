@@ -1,78 +1,68 @@
 package by.tms.petstore.controller;
 
 import by.tms.petstore.exception.petException.InvalidInputException;
+import by.tms.petstore.exception.petException.PetNotFoundException;
+import by.tms.petstore.exception.storeException.InvalidOrderException;
 import by.tms.petstore.exception.storeException.OrderNotFoundException;
 import by.tms.petstore.model.ApiResponse;
 import by.tms.petstore.model.Order;
+import by.tms.petstore.serviсe.PetService;
+import by.tms.petstore.serviсe.StoreService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import javax.validation.constraints.Max;
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.Map;
 
 @RestController
 @RequestMapping("/store")
+@Validated
 public class StoreController {
 
-    @Autowired
-    @Qualifier("map")
-    public Map<String, Integer> map;
+   private final StoreService storeService;
 
     @Autowired
-    @Qualifier("orders")
-    public List<Order> orders;
+    public StoreController(StoreService storeService) {
+        this.storeService = storeService;
+    }
 
     @GetMapping(path = "/inventory")
     public ResponseEntity<Map> retMap() {
-        map.put("additionalProp1", 0);
-        map.put("additionalProp2", 0);
-        map.put("additionalProp3", 0);
-        return new ResponseEntity(map, HttpStatus.OK);
+      return new ResponseEntity(storeService.retMap(), HttpStatus.OK);
     }
 
     @GetMapping(path = "/order/{orderId}")
-    public ResponseEntity<Order> findOrder(@PathVariable("orderId") int orderId) {
-        if (orderId > 10 || orderId < 1) {
-            throw new by.tms.petshop.exception.InvalidIDException();
-        }
-        for (Order order1 : orders) {
-            if (order1.getId() == orderId) {
-                return new ResponseEntity(order1, HttpStatus.OK);
-            }
-        }
-        throw new OrderNotFoundException();
+    public ResponseEntity<Order> findOrder(@PathVariable("orderId") @Min(1) @Max(10) int orderId) {
+       if(storeService.findOrder(orderId).equals(null)){
+           throw new OrderNotFoundException();
+       }
+        return new ResponseEntity(storeService.findOrder(orderId).equals(null), HttpStatus.OK);
     }
 
     @DeleteMapping(path = "/order/{orderId}")
-    public ResponseEntity<ApiResponse> deleteOrder(@PathVariable("orderId") int orderId) {
-        if(orderId<=0){
-            throw new by.tms.petshop.exception.InvalidIDException();
+    public ResponseEntity<ApiResponse> deleteOrder(@PathVariable("orderId")  @Min(1)int orderId) {
+        if(!storeService.deleteOrder(orderId)){
+            throw new OrderNotFoundException();
         }
-        for(Order order1: orders){
-            if(order1.getId()==orderId){
-                orders.remove(order1);
-            } else {
-                throw new OrderNotFoundException();
-            }
-        }
-        return new ResponseEntity( new ApiResponse(200,"Response","Successfully deleted"), HttpStatus.OK );
+        return new ResponseEntity( new ApiResponse("Successfully deleted"), HttpStatus.OK );
     }
 
     @PostMapping(path = "/order")
-    public ResponseEntity<ApiResponse> addOrder(@RequestBody Order order){
+    public ResponseEntity<ApiResponse> addOrder(@RequestBody @NotNull Order order){
         if(order.getId()<=0 || order.getPetId()<=0 || order.getQuantity()<=0 || order.getShipDate()==null){
-            throw new InvalidInputException();
+            throw new InvalidOrderException();
         }
-        for(Order order1 : orders){
-            if(order1.getId() == order.getId() || order.getPetId() == order1.getPetId()){
-                throw new InvalidInputException();
-            }
-        }
-        orders.add(order);
-        return new ResponseEntity( new ApiResponse(200,"Result","Successfully added"), HttpStatus.OK );
+       if(!storeService.addOrder(order)){
+           throw new InvalidInputException();
+       }
+        return new ResponseEntity( new ApiResponse("Successfully added"), HttpStatus.CREATED);
     }
 
 }

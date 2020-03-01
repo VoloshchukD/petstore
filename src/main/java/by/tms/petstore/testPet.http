@@ -1,0 +1,45 @@
+GET http://localhost:8080/pet/1
+
+###
+
+POST http://localhost:8080/pet
+Content-Type: application/json
+
+{
+
+  "id": 235586787,
+  "category": null,
+  "name": "Jerry",
+  "tags": null,
+  "status": null
+
+}
+
+###
+
+POST http://localhost:8080/pet/1?name=aaa&status=AVAILABLE
+Content-Type: application/json
+
+###
+
+DELETE http://localhost:8080/pet/123?apiKey=a
+Content-Type: application/json
+
+###
+
+PUT http://localhost:8080/pet
+Content-Type: application/json
+
+{
+
+  "id": 123456,
+  "name": "Jerry"
+
+}
+
+###
+
+GET http://localhost:8080/pet/findByStatus?status=AVAILABLE
+Content-Type: application/json
+
+###
