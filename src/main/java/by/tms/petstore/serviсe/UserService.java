@@ -1,9 +1,7 @@
 package by.tms.petstore.serviсe;
 
 import by.tms.petstore.exception.userException.InvalidUsernameException;
-import by.tms.petstore.model.ApiResponse;
-import by.tms.petstore.model.Order;
-import by.tms.petstore.model.User;
+import by.tms.petstore.model.*;
 import by.tms.petstore.repository.StoreRepository;
 import by.tms.petstore.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +16,9 @@ import java.util.Optional;
 @Service
 public class UserService {
 
+    @Autowired
+    private User currentUser;
+
     private final UserRepository userRepository;
 
     @Autowired
@@ -25,53 +26,46 @@ public class UserService {
         this.userRepository = userRepository;
     }
 
-    public List<User> users = new ArrayList<>();
-
-    public User currentUser = new User();
-
     public User findUser(String username){
-        for(User user1 : users){
-            if(user1.getUsername().equals(username)){
-                return user1;
-            }
+        Optional<User> byId = userRepository.findById(username);
+        if(byId.isPresent()){
+            return byId.get();
         }
         return null;
     }
 
     public boolean updUser(String username, User user) {
-        for (User user1 : users) {
-            if (user1.getUsername().equals(username)) {
-                user1.setUserStatus(user.getUserStatus());
-                user1.setEmail(user.getEmail());
-                user1.setFirstName(user.getFirstName());
-                user1.setLastName(user.getLastName());
-                user1.setPassword(user.getPassword());
-                user1.setPhone(user.getPhone());
-                return true;
-            }
+        Optional<User> byId = userRepository.findById(username);
+        if(byId.isPresent()){
+            byId.get().setUserStatus(user.getUserStatus());
+            byId.get().setEmail(user.getEmail());
+            byId.get().setPassword(user.getPassword());
+            byId.get().setFirstName(user.getFirstName());
+            byId.get().setLastName(user.getLastName());
+            byId.get().setPhone(user.getPhone());
+            return true;
         }
         return false;
     }
 
     public boolean delUser(String username) {
-        for (User user1 : users) {
-            if (user1.getUsername().equals(username)) {
-               users.remove(user1);
-                return true;
-            }
+        Optional<User> byId = userRepository.findById(username);
+        if(byId.isPresent()){
+            userRepository.delete(byId.get());
+            return true;
         }
         return false;
     }
 
     public boolean login(String username, String password) {
-        for(User user1: users) {
-            if (user1.getUsername().equals(username) && user1.getPassword().equals(password)) {
-                user1.setUserStatus(User.Status.VALID);
-                currentUser = user1;
-                return true;
-            }
+        Optional<User> byId = userRepository.findById(username);
+        if(byId.isPresent()){
+            byId.get().setUserStatus(User.Status.VALID);
+            currentUser = byId.get();
+            return true;
         }
-       return false;
+        return false;
+
     }
 
     public boolean logout() {
@@ -85,10 +79,10 @@ public class UserService {
 
     public String addUser(User user) {
         if(!currentUser.getUserStatus().equals(User.Status.VALID) || currentUser != null){
-            users.add(user);
+            userRepository.save(user);
             return "added";
         }
-        if(users.contains(user)){
+        if(userRepository.existsById(user.getUsername())){
             return "userexists";
         }
        return "notfound";
@@ -96,20 +90,20 @@ public class UserService {
 
     public boolean createWithArray(User[] usersP) {
         for(User user1 : usersP){
-            if(users.contains(user1)){
+            if(userRepository.existsById(user1.getUsername())){
                 return false;
             }
-            users.add(user1);
+            userRepository.save(user1);
         }
         return true;
     }
 
     public boolean createWithList(List<User> usersP) {
         for(User user1 : usersP){
-            if(users.contains(user1)){
+            if(userRepository.existsById(user1.getUsername())){
                 return false;
             }
-            users.add(user1);
+            userRepository.save(user1);
         }
         return true;
     }

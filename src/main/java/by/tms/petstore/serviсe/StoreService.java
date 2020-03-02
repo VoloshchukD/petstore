@@ -22,9 +22,8 @@ public class StoreService {
         this.storeRepository = storeRepository;
     }
 
-    public Map<String, Integer> map = new HashMap<>();
-
-    public List<Order> orders = new ArrayList<>();
+    @Autowired
+    private Map<String, Integer> map;
 
     public Map retMap () {
         map.put("additionalProp1", 0);

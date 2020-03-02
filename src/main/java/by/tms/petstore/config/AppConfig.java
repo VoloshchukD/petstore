@@ -18,14 +18,9 @@ import java.util.*;
 @ComponentScan(basePackages = "by.tms.petstore")
 public class AppConfig {
 
-    @Bean("orders")
-    public List<Order> orders(){
-        return new ArrayList<>();
-    }
-
-    @Bean("users")
-    public List<User> users(){
-        return new ArrayList<>();
+    @Bean("map")
+    public Map<String, Integer> map(){
+        return new HashMap<>();
     }
 
     @Bean("currentUser")
